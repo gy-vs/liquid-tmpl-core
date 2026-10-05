@@ -59,6 +59,8 @@ export function toArray (val: any) {
   val = toValue(val)
   if (isNil(val)) return []
   if (isArray(val)) return val
+  if (isSet(val)) return [...val]
+  if (isMap(val)) return [...val]
   return [ val ]
 }
 
@@ -90,6 +92,19 @@ export function isUndefined (value: any): boolean {
 export function isArray (value: any): value is any[] {
   // be compatible with IE 8
   return toString.call(value) === '[object Array]'
+}
+
+export function isSet (value: any): value is Set<any> {
+  return value instanceof Set
+}
+
+export function isMap (value: any): value is Map<any, any> {
+  return value instanceof Map
+}
+
+// a Set is seen as an array of its values, a Map as an array of [key, value] pairs
+export function isCollection (value: any): value is Set<any> | Map<any, any> {
+  return isSet(value) || isMap(value)
 }
 
 export function isArrayLike (value: any): value is any[] {

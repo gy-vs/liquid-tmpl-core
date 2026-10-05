@@ -1,12 +1,13 @@
 import { Drop } from './drop'
 import { Comparable } from './comparable'
-import { isObject, isString, isArray, toValue } from '../util'
+import { isObject, isString, isArray, isSet, isMap, toValue } from '../util'
 
 export class EmptyDrop extends Drop implements Comparable {
   public equals (value: any) {
     if (value instanceof EmptyDrop) return false
     value = toValue(value)
     if (isString(value) || isArray(value)) return value.length === 0
+    if (isSet(value) || isMap(value)) return value.size === 0
     if (isObject(value)) return Object.keys(value).length === 0
     return false
   }
