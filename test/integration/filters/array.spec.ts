@@ -26,6 +26,14 @@ describe('filters/array', function () {
         '{{ beatles | join " and " }}'
       return expect(render(src)).rejects.toThrow('expected ":" after filter name, line:1, col:83')
     })
+    it('should support Set', function () {
+      const tags = new Set(['sale', 'new', 'hot'])
+      return test('{{ tags | join: "," }}', { tags }, 'sale,new,hot')
+    })
+    it('should support Map as key/value pairs', function () {
+      const stock = new Map([['red', 3], ['blue', 5]])
+      return test('{{ stock | join: "," }}', { stock }, 'red,3,blue,5')
+    })
   })
   describe('split', () => {
     it('should support split', function () {
@@ -131,6 +139,15 @@ describe('filters/array', function () {
       await test('{{ nullValue | concat | join: "," }}', scope, '')
       await test('{{ nullValue | concat: nil | join: "," }}', scope, '')
     })
+    it('should concat Set elements', async () => {
+      const scope = { tags: new Set(['sale', 'new']), emptySet: new Set() }
+      await test('{{ tags | concat: emptySet | size }}', scope, '2')
+      await test('{{ tags | concat: emptySet | join: "," }}', scope, 'sale,new')
+    })
+    it('should concat Map entries as key/value pairs', async () => {
+      const scope = { stock: new Map([['red', 3]]), arr: [['blue', 5]] }
+      await test('{{ stock | concat: arr | size }}', scope, '2')
+    })
   })
 
   describe('push', () => {
@@ -212,6 +229,14 @@ describe('filters/array', function () {
       const html = await render('{{ arr | join: "" }}', scope)
       expect(html).toBe('abc')
     })
+    it('should support Set', function () {
+      const tags = new Set(['sale', 'new', 'hot'])
+      return test('{{ tags | reverse | join: "," }}', { tags }, 'hot,new,sale')
+    })
+    it('should support Map as key/value pairs', function () {
+      const stock = new Map([['red', 3], ['blue', 5]])
+      return test('{{ stock | reverse | first | join: "=" }}', { stock }, 'blue=5')
+    })
   })
   describe('sample', function () {
     it('should return one item if count not specified', async () => {
@@ -257,6 +282,30 @@ describe('filters/array', function () {
     it('should return 0 for nil', () => test('{{ nil | size }}', '0'))
     it('should return 0 for undefined', () => test('{{ foo | size }}', '0'))
     it('should work for string', () => test('{{ "foo" | size }}', {}, '3'))
+    it('should return Set size', () => test(
+      '{{ tags | size }}',
+      { tags: new Set(['sale', 'new', 'hot']) },
+      '3'
+    ))
+    it('should return Map size', () => test(
+      '{{ stock | size }}',
+      { stock: new Map([['red', 3], ['blue', 5]]) },
+      '2'
+    ))
+    it('should return 0 for empty Set and empty Map', async () => {
+      await test('{{ tags | size }}', { tags: new Set() }, '0')
+      await test('{{ stock | size }}', { stock: new Map() }, '0')
+    })
+    it('should be respected with <set>.size notation', () => test(
+      '{{ tags.size }}',
+      { tags: new Set(['sale', 'new', 'hot']) },
+      '3'
+    ))
+    it('should be respected with <map>.size notation', () => test(
+      '{{ stock.size }}',
+      { stock: new Map([['red', 3], ['blue', 5]]) },
+      '2'
+    ))
   })
   describe('first', function () {
     it('should support first', () => test(
@@ -268,6 +317,27 @@ describe('filters/array', function () {
     it('should return empty for undefined', () => test('{{foo | first}}', ''))
     it('should return empty for false', () => test('{{false | first}}', ''))
     it('should work for string', () => test('{{ "foo" | first }}', 'f'))
+    it('should support Set', () => test(
+      '{{ tags | first }}',
+      { tags: new Set(['sale', 'new', 'hot']) },
+      'sale'
+    ))
+    it('should return empty for empty Set', () => test('{{ tags | first }}', { tags: new Set() }, ''))
+    it('should return key/value pair for Map', () => test(
+      '{{ stock | first | join: "=" }}',
+      { stock: new Map([['red', 3], ['blue', 5]]) },
+      'red=3'
+    ))
+    it('should be respected with <set>.first notation', () => test(
+      '{{ tags.first }}',
+      { tags: new Set(['sale', 'new', 'hot']) },
+      'sale'
+    ))
+    it('should be respected with <map>.first notation', () => test(
+      '{{ stock.first | join: "=" }}',
+      { stock: new Map([['red', 3], ['blue', 5]]) },
+      'red=3'
+    ))
   })
   describe('last', function () {
     it('should support last', () => test(
@@ -279,6 +349,27 @@ describe('filters/array', function () {
     it('should return empty for undefined', () => test('{{foo | last}}', ''))
     it('should return empty for false', () => test('{{false | last}}', ''))
     it('should work for string', () => test('{{ "foo" | last }}', {}, 'o'))
+    it('should support Set', () => test(
+      '{{ tags | last }}',
+      { tags: new Set(['sale', 'new', 'hot']) },
+      'hot'
+    ))
+    it('should return empty for empty Set', () => test('{{ tags | last }}', { tags: new Set() }, ''))
+    it('should return key/value pair for Map', () => test(
+      '{{ stock | last | join: "=" }}',
+      { stock: new Map([['red', 3], ['blue', 5]]) },
+      'blue=5'
+    ))
+    it('should be respected with <set>.last notation', () => test(
+      '{{ tags.last }}',
+      { tags: new Set(['sale', 'new', 'hot']) },
+      'hot'
+    ))
+    it('should be respected with <map>.last notation', () => test(
+      '{{ stock.last | join: "=" }}',
+      { stock: new Map([['red', 3], ['blue', 5]]) },
+      'blue=5'
+    ))
   })
   describe('slice', function () {
     it('should slice first char by 0', () => test('{{ "Liquid" | slice: 0 }}', 'L'))
@@ -295,6 +386,10 @@ describe('filters/array', function () {
               ' | split: ", " %}' +
               '{{ my_array | sort | join: ", " }}',
       'Sally Snake, giraffe, octopus, zebra')
+    })
+    it('should support Set', function () {
+      const tags = new Set(['sale', 'new', 'hot'])
+      return test('{{ tags | sort | join: "," }}', { tags }, 'hot,new,sale')
     })
     it('should support sort by key', function () {
       const tpl = '{{ arr | sort: "name" | map: "name" | join }}'

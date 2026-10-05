@@ -48,4 +48,24 @@ describe('drop/blank-drop', function () {
     const html = await liquid.parseAndRender(src, { arr: [1] })
     expect(html).toBe('[1] != blank')
   })
+  it('new Set() is blank', async function () {
+    const src = '{%if tags == blank %}new Set() == blank{%else%}new Set() != blank{% endif %}'
+    const html = await liquid.parseAndRender(src, { tags: new Set() })
+    expect(html).toBe('new Set() == blank')
+  })
+  it('new Set([1]) is not blank', async function () {
+    const src = '{%if tags == blank %}new Set([1]) == blank{%else%}new Set([1]) != blank{% endif %}'
+    const html = await liquid.parseAndRender(src, { tags: new Set([1]) })
+    expect(html).toBe('new Set([1]) != blank')
+  })
+  it('new Map() is blank', async function () {
+    const src = '{%if stock == blank %}new Map() == blank{%else%}new Map() != blank{% endif %}'
+    const html = await liquid.parseAndRender(src, { stock: new Map() })
+    expect(html).toBe('new Map() == blank')
+  })
+  it('new Map([["red", 3]]) is not blank', async function () {
+    const src = '{%if stock == blank %}new Map([["red", 3]]) == blank{%else%}new Map([["red", 3]]) != blank{% endif %}'
+    const html = await liquid.parseAndRender(src, { stock: new Map([['red', 3]]) })
+    expect(html).toBe('new Map([["red", 3]]) != blank')
+  })
 })

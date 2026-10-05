@@ -59,6 +59,7 @@ export function toArray (val: any) {
   val = toValue(val)
   if (isNil(val)) return []
   if (isArray(val)) return val
+  if (isSet(val) || isMap(val)) return Array.from(val)
   return [ val ]
 }
 
@@ -94,6 +95,14 @@ export function isArray (value: any): value is any[] {
 
 export function isArrayLike (value: any): value is any[] {
   return value && isNumber(value.length)
+}
+
+export function isSet (value: any): value is Set<any> {
+  return toString.call(value) === '[object Set]'
+}
+
+export function isMap (value: any): value is Map<any, any> {
+  return toString.call(value) === '[object Map]'
 }
 
 export function isIterable (value: any): value is Iterable<any> {

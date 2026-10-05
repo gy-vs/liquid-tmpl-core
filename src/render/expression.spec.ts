@@ -114,6 +114,22 @@ describe('Expression', function () {
       const ctx = new Context({ x: 'XXX' })
       expect(await toPromise(create('(1..5) contains 6').evaluate(ctx, false))).toBe(false)
     })
+    it('should return true for "tags contains "new"" when tags is a Set', async () => {
+      const ctx = new Context({ tags: new Set(['sale', 'new', 'hot']) })
+      expect(await toPromise(create('tags contains "new"').evaluate(ctx, false))).toBe(true)
+    })
+    it('should return false for "tags contains "sale off"" when tags is a Set', async () => {
+      const ctx = new Context({ tags: new Set(['sale', 'new', 'hot']) })
+      expect(await toPromise(create('tags contains "sale off"').evaluate(ctx, false))).toBe(false)
+    })
+    it('should return true for "stock contains "red"" when stock is a Map', async () => {
+      const ctx = new Context({ stock: new Map([['red', 3], ['blue', 5]]) })
+      expect(await toPromise(create('stock contains "red"').evaluate(ctx, false))).toBe(true)
+    })
+    it('should return false for "stock contains 3" when stock is a Map', async () => {
+      const ctx = new Context({ stock: new Map([['red', 3], ['blue', 5]]) })
+      expect(await toPromise(create('stock contains 3').evaluate(ctx, false))).toBe(false)
+    })
     it('should return true for ""<=" == "<=""', async () => {
       expect(await toPromise(create('"<=" == "<="').evaluate(ctx, false))).toBe(true)
     })

@@ -1,4 +1,4 @@
-import { toArray, argumentsToValue, toValue, stringify, caseInsensitiveCompare, isArray, isNil, last as arrayLast, isArrayLike, toEnumerable } from '../util'
+import { toArray, argumentsToValue, toValue, stringify, caseInsensitiveCompare, isArray, isNil, last as arrayLast, isArrayLike, toEnumerable, isSet, isMap } from '../util'
 import { arrayIncludes, equals, evalToken, isTruthy } from '../render'
 import { Value, FilterImpl } from '../template'
 import { Tokenizer } from '../parser'
@@ -12,8 +12,16 @@ export const join = argumentsToValue(function (this: FilterImpl, v: any[], arg: 
   this.context.memoryLimit.use(complexity)
   return array.join(sep)
 })
-export const last = argumentsToValue((v: any) => isArrayLike(v) ? arrayLast(v) : '')
-export const first = argumentsToValue((v: any) => isArrayLike(v) ? v[0] : '')
+export const last = argumentsToValue((v: any) => {
+  if (isArrayLike(v)) return arrayLast(v)
+  if (isSet(v) || isMap(v)) return arrayLast(toArray(v))
+  return ''
+})
+export const first = argumentsToValue((v: any) => {
+  if (isArrayLike(v)) return v[0]
+  if (isSet(v) || isMap(v)) return toArray(v)[0]
+  return ''
+})
 export const reverse = argumentsToValue(function (this: FilterImpl, v: any[]) {
   const array = toArray(v)
   this.context.memoryLimit.use(array.length)
@@ -47,7 +55,10 @@ export function sort_natural<T> (this: FilterImpl, input: T[], property?: string
   return [...array].sort(compare)
 }
 
-export const size = (v: string | any[]) => (v && v.length) || 0
+export const size = (v: string | any[]) => {
+  if (isSet(v) || isMap(v)) return v.size
+  return (v && v.length) || 0
+}
 
 export function * map (this: FilterImpl, arr: Scope[], property: string): IterableIterator<unknown> {
   const results = []
